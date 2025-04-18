@@ -101,3 +101,24 @@
 .sce-link {
   @apply text-sce-red hover:text-sce-darkred transition-colors hover:underline;
 }
+
+/* SCP Foundation специфичные стили */
+.scp-warning {
+  @apply bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-600 dark:border-yellow-700 p-4 mb-4 text-yellow-800 dark:text-yellow-400;
+}
+
+.scp-object-title {
+  @apply flex items-center space-x-2 text-xl md:text-2xl font-bold pb-2 border-b border-gray-200 dark:border-gray-800 mb-4;
+}
+
+.scp-protocol {
+  @apply bg-gray-50 dark:bg-gray-900/20 p-4 border border-gray-300 dark:border-gray-700 mb-4;
+}
+
+.scp-classified {
+  @apply bg-sce-red/10 dark:bg-sce-red/20 border border-sce-red p-3 my-2 text-sce-red;
+}
+
+.scp-redacted {
+  @apply bg-black text-black dark:bg-gray-600 dark:text-gray-600 px-2 mx-1 inline-block select-none;
+}

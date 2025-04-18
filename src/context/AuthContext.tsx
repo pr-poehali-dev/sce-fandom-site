@@ -13,6 +13,10 @@ export interface UserData {
   avatar?: string;
   specialAccess?: string[];
   overrideCode?: string;
+  clearanceLevel?: string;
+  yearsOfService?: number;
+  mobileGroup?: string;
+  researchArea?: string;
 }
 
 interface AuthContextType {
@@ -24,6 +28,7 @@ interface AuthContextType {
   logout: () => void;
   forceAccess: (resourceId: string) => Promise<boolean>;
   hasAccessToResource: (requiredLevel: number) => boolean;
+  hasSpecialAccess: (accessType: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -61,8 +66,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         department: 'Отдел специальных исследований',
         position: 'Старший исследователь',
         avatar: '/placeholder.svg',
-        specialAccess: ['unrestricted', 'keter', 'admin'],
-        overrideCode: 'SCE-ADMIN-OVERRIDE'
+        specialAccess: ['unrestricted', 'keter', 'admin', 'classified', 'nmog'],
+        overrideCode: 'O5-COMMAND-OVERRIDE',
+        clearanceLevel: 'Уровень 5 / O5-7',
+        yearsOfService: 8,
+        mobileGroup: 'Н-МОГ Альфа-9 ("Последняя Надежда")',
+        researchArea: 'Кетер-класс, когнитивные аномалии'
       };
       
       // Сохраняем в localStorage и состояние
@@ -89,10 +98,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         username,
         email,
         accessLevel: 5,
-        department: 'Отдел специальных исследований',
-        position: 'Старший исследователь',
-        specialAccess: ['unrestricted', 'keter', 'admin'],
-        overrideCode: 'SCE-ADMIN-OVERRIDE'
+        department: 'Отдел исследований аномалий',
+        position: 'Научный сотрудник',
+        specialAccess: ['unrestricted', 'keter', 'admin', 'classified', 'nmog'],
+        overrideCode: 'O5-COMMAND-OVERRIDE',
+        clearanceLevel: 'Уровень 5 / O5-7',
+        yearsOfService: 3,
+        mobileGroup: 'Н-МОГ Бета-4 ("Разбитые Алмихики")',
+        researchArea: 'Религиозные аномалии, оккультные артефакты'
       };
       
       // Сохраняем в localStorage и состояние
@@ -117,6 +130,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return user.accessLevel >= requiredLevel;
   };
 
+  // Проверка специального доступа
+  const hasSpecialAccess = (accessType: string): boolean => {
+    if (!user || !user.specialAccess) return false;
+    return user.specialAccess.includes(accessType);
+  };
+
   // Функция для форсирования доступа (для пользователей с уровнем 5)
   const forceAccess = async (resourceId: string): Promise<boolean> => {
     if (!user || user.accessLevel < 5) return false;
@@ -136,7 +155,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     register,
     logout,
     forceAccess,
-    hasAccessToResource
+    hasAccessToResource,
+    hasSpecialAccess
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

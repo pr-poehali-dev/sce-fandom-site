@@ -10,6 +10,7 @@ import RegisterPage from "./pages/RegisterPage";
 import ProfilePage from "./pages/ProfilePage";
 import SecureDocsPage from "./pages/SecureDocsPage";
 import NotFound from "./pages/NotFound";
+import TaskForcesPage from "./pages/TaskForcesPage";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/secure-docs" element={<SecureDocsPage />} />
+            <Route path="/mobile-task-forces" element={<TaskForcesPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
