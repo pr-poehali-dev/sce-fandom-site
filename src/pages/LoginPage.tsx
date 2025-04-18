@@ -1,11 +1,12 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 import {
   Form,
   FormControl,
@@ -16,11 +17,12 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, ShieldCheck } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 const loginFormSchema = z.object({
   email: z.string().email({ message: "Введите корректный email" }),
-  password: z.string().min(6, { message: "Пароль должен содержать минимум 6 символов" }),
+  password: z.string().min(1, { message: "Пароль обязателен" }),
   rememberMe: z.boolean().default(false),
 });
 
@@ -29,6 +31,16 @@ type LoginFormValues = z.infer<typeof loginFormSchema>;
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { login, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  // Перенаправляем на главную, если пользователь уже авторизован
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginFormSchema),
@@ -43,16 +55,46 @@ const LoginPage = () => {
     setIsLoading(true);
     
     try {
-      // В реальном приложении здесь будет запрос к API для авторизации
-      console.log("Данные формы:", data);
+      await login(data.email, data.password);
       
-      // Имитация задержки запроса
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      toast({
+        title: "Доступ предоставлен",
+        description: "Вам присвоен уровень доступа 5. Добро пожаловать в систему SCE Foundation.",
+        variant: "default",
+      });
       
-      // Перенаправление на главную после успешного входа
-      window.location.href = "/";
+      navigate('/');
     } catch (error) {
-      console.error("Ошибка входа:", error);
+      toast({
+        title: "Ошибка авторизации",
+        description: "Не удалось выполнить вход. Пожалуйста, проверьте данные и попробуйте снова.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Функция для быстрого входа без ввода данных
+  const handleQuickAccess = async () => {
+    setIsLoading(true);
+    
+    try {
+      await login("guest@sce.org", "securePassword");
+      
+      toast({
+        title: "Экстренный доступ предоставлен",
+        description: "Вам присвоен уровень доступа 5. Используйте систему с осторожностью.",
+        variant: "default",
+      });
+      
+      navigate('/');
+    } catch (error) {
+      toast({
+        title: "Ошибка авторизации",
+        description: "Не удалось выполнить экстренный вход.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -155,6 +197,19 @@ const LoginPage = () => {
               >
                 {isLoading ? "Вход..." : "Войти в систему"}
               </Button>
+              
+              <div className="text-center">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full border-dashed border-sce-red text-sce-red hover:bg-sce-red/10"
+                  onClick={handleQuickAccess}
+                  disabled={isLoading}
+                >
+                  <ShieldCheck className="mr-2 h-4 w-4" />
+                  Экстренный доступ (Уровень 5)
+                </Button>
+              </div>
               
               <div className="text-center text-sm text-gray-600 dark:text-gray-400">
                 Нет учетной записи?{" "}

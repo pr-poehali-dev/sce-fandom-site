@@ -1,11 +1,27 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Menu, X, Search, ChevronDown } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Menu, X, Search, ChevronDown, User, FileText, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/context/AuthContext';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const { user, isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   return (
     <header className="bg-white dark:bg-sce-black border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50">
@@ -25,6 +41,12 @@ const Header = () => {
           </div>
           
           <div className="flex items-center space-x-4">
+            {isAuthenticated && (
+              <div className="hidden sm:flex items-center px-3 py-1 bg-green-100 dark:bg-green-900 rounded-sm">
+                <span className="text-xs text-green-800 dark:text-green-200 font-medium">Уровень доступа: 5</span>
+              </div>
+            )}
+            
             <button 
               className="text-gray-600 dark:text-gray-300 hover:text-sce-red dark:hover:text-sce-red"
               onClick={() => setIsSearchOpen(!isSearchOpen)}
@@ -32,14 +54,53 @@ const Header = () => {
               <Search size={20} />
             </button>
             
-            <div className="hidden md:flex space-x-2">
-              <Button variant="outline" size="sm" className="text-sm" asChild>
-                <Link to="/login">Вход</Link>
-              </Button>
-              <Button className="bg-sce-red hover:bg-sce-darkred text-sm" asChild>
-                <Link to="/register">Регистрация</Link>
-              </Button>
-            </div>
+            {isAuthenticated ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center space-x-2 rounded-full focus:outline-none focus:ring-2 focus:ring-sce-red">
+                    <Avatar className="h-9 w-9 border-2 border-sce-red">
+                      <AvatarImage src={user?.avatar || '/placeholder.svg'} alt={user?.username} />
+                      <AvatarFallback className="bg-sce-red text-white">
+                        {user?.username?.substring(0, 2).toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <div className="px-2 py-1.5">
+                    <p className="text-sm font-medium">{user?.username}</p>
+                    <p className="text-xs text-muted-foreground">{user?.email}</p>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile" className="flex items-center cursor-pointer">
+                      <User size={16} className="mr-2" />
+                      <span>Мой профиль</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/secure-docs" className="flex items-center cursor-pointer">
+                      <FileText size={16} className="mr-2" />
+                      <span>Секретные документы</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="text-red-600 dark:text-red-400 cursor-pointer">
+                    <LogOut size={16} className="mr-2" />
+                    <span>Выйти</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <div className="hidden md:flex space-x-2">
+                <Button variant="outline" size="sm" className="text-sm" asChild>
+                  <Link to="/login">Вход</Link>
+                </Button>
+                <Button className="bg-sce-red hover:bg-sce-darkred text-sm" asChild>
+                  <Link to="/register">Регистрация</Link>
+                </Button>
+              </div>
+            )}
             
             <button 
               className="md:hidden text-gray-600 dark:text-gray-300"
@@ -106,6 +167,13 @@ const Header = () => {
                 Форум
               </Link>
             </li>
+            {isAuthenticated && (
+              <li>
+                <Link to="/secure-docs" className="flex items-center text-sce-red dark:text-sce-red font-medium">
+                  Секретные файлы
+                </Link>
+              </li>
+            )}
           </ul>
         </nav>
       </div>

@@ -1,11 +1,12 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 import {
   Form,
   FormControl,
@@ -18,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 const registerFormSchema = z.object({
   username: z
@@ -45,6 +47,16 @@ const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { register, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  // Перенаправляем на главную, если пользователь уже авторизован
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerFormSchema),
@@ -61,16 +73,21 @@ const RegisterPage = () => {
     setIsLoading(true);
     
     try {
-      // В реальном приложении здесь будет запрос к API для регистрации
-      console.log("Данные формы:", data);
+      await register(data.username, data.email, data.password);
       
-      // Имитация задержки запроса
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      toast({
+        title: "Регистрация успешна",
+        description: "Добро пожаловать в SCE Foundation! Вам присвоен уровень доступа 5.",
+        variant: "default",
+      });
       
-      // Перенаправление на главную после успешной регистрации
-      window.location.href = "/";
+      navigate('/');
     } catch (error) {
-      console.error("Ошибка регистрации:", error);
+      toast({
+        title: "Ошибка регистрации",
+        description: "Не удалось завершить регистрацию. Пожалуйста, попробуйте снова.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -185,6 +202,13 @@ const RegisterPage = () => {
                   </FormItem>
                 )}
               />
+              
+              <div className="p-3 border border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-700 rounded-sm text-sm">
+                <p className="font-medium text-yellow-800 dark:text-yellow-400">Важное уведомление</p>
+                <p className="mt-1 text-yellow-700 dark:text-yellow-500">
+                  Все новые аккаунты автоматически получают уровень допуска 5, обеспечивающий полный доступ к секретным документам SCE Foundation.
+                </p>
+              </div>
               
               <FormField
                 control={form.control}
