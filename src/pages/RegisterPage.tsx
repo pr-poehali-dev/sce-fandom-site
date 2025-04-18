@@ -1,0 +1,241 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  FormDescription,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Eye, EyeOff } from "lucide-react";
+
+const registerFormSchema = z.object({
+  username: z
+    .string()
+    .min(3, { message: "Имя пользователя должно содержать минимум 3 символа" })
+    .max(30, { message: "Имя пользователя не должно превышать 30 символов" }),
+  email: z.string().email({ message: "Введите корректный email" }),
+  password: z
+    .string()
+    .min(8, { message: "Пароль должен содержать минимум 8 символов" })
+    .regex(/[A-Z]/, { message: "Пароль должен содержать хотя бы одну заглавную букву" })
+    .regex(/[0-9]/, { message: "Пароль должен содержать хотя бы одну цифру" }),
+  confirmPassword: z.string(),
+  termsAccepted: z.boolean().refine(val => val === true, {
+    message: "Вы должны принять условия использования"
+  }),
+}).refine(data => data.password === data.confirmPassword, {
+  message: "Пароли не совпадают",
+  path: ["confirmPassword"],
+});
+
+type RegisterFormValues = z.infer<typeof registerFormSchema>;
+
+const RegisterPage = () => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const form = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerFormSchema),
+    defaultValues: {
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      termsAccepted: false,
+    },
+  });
+
+  const onSubmit = async (data: RegisterFormValues) => {
+    setIsLoading(true);
+    
+    try {
+      // В реальном приложении здесь будет запрос к API для регистрации
+      console.log("Данные формы:", data);
+      
+      // Имитация задержки запроса
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Перенаправление на главную после успешной регистрации
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Ошибка регистрации:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Header />
+      
+      <main className="flex-grow bg-gray-50 dark:bg-sce-dark py-12">
+        <div className="max-w-md mx-auto bg-white dark:bg-sce-black border border-gray-200 dark:border-gray-800 rounded-sm shadow-sm p-8">
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-bold mb-2">Регистрация</h1>
+            <p className="text-gray-600 dark:text-gray-400 text-sm">
+              Создайте учетную запись для доступа к материалам SCE Foundation
+            </p>
+          </div>
+          
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <FormField
+                control={form.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Имя пользователя</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="agent_smith" 
+                        {...field} 
+                        className="dark:bg-sce-dark"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="your.email@sce.org" 
+                        {...field} 
+                        className="dark:bg-sce-dark"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Пароль</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input 
+                          type={showPassword ? "text" : "password"} 
+                          placeholder="********" 
+                          {...field} 
+                          className="dark:bg-sce-dark pr-10"
+                        />
+                        <button 
+                          type="button"
+                          className="absolute right-3 top-2.5 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                      </div>
+                    </FormControl>
+                    <FormDescription className="text-xs">
+                      Минимум 8 символов, включая заглавную букву и цифру
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Подтверждение пароля</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input 
+                          type={showConfirmPassword ? "text" : "password"} 
+                          placeholder="********" 
+                          {...field} 
+                          className="dark:bg-sce-dark pr-10"
+                        />
+                        <button 
+                          type="button"
+                          className="absolute right-3 top-2.5 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        >
+                          {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="termsAccepted"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox 
+                        checked={field.value} 
+                        onCheckedChange={field.onChange} 
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="text-sm font-normal text-gray-600 dark:text-gray-400">
+                        Я согласен с{" "}
+                        <Link to="/terms" className="text-sce-red hover:underline">
+                          условиями использования
+                        </Link>{" "}
+                        и{" "}
+                        <Link to="/privacy" className="text-sce-red hover:underline">
+                          политикой конфиденциальности
+                        </Link>
+                      </FormLabel>
+                      <FormMessage />
+                    </div>
+                  </FormItem>
+                )}
+              />
+              
+              <Button 
+                type="submit" 
+                className="w-full bg-sce-red hover:bg-sce-darkred"
+                disabled={isLoading}
+              >
+                {isLoading ? "Регистрация..." : "Создать учетную запись"}
+              </Button>
+              
+              <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+                Уже есть учетная запись?{" "}
+                <Link to="/login" className="text-sce-red hover:underline">
+                  Войти
+                </Link>
+              </div>
+            </form>
+          </Form>
+        </div>
+      </main>
+      
+      <Footer />
+    </div>
+  );
+};
+
+export default RegisterPage;

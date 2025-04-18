@@ -33,8 +33,12 @@ const Header = () => {
             </button>
             
             <div className="hidden md:flex space-x-2">
-              <Button variant="outline" size="sm" className="text-sm">Вход</Button>
-              <Button className="bg-sce-red hover:bg-sce-darkred text-sm">Регистрация</Button>
+              <Button variant="outline" size="sm" className="text-sm" asChild>
+                <Link to="/login">Вход</Link>
+              </Button>
+              <Button className="bg-sce-red hover:bg-sce-darkred text-sm" asChild>
+                <Link to="/register">Регистрация</Link>
+              </Button>
             </div>
             
             <button 
