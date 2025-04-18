@@ -11,6 +11,8 @@ export interface UserData {
   department?: string;
   position?: string;
   avatar?: string;
+  specialAccess?: string[];
+  overrideCode?: string;
 }
 
 interface AuthContextType {
@@ -20,6 +22,8 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (username: string, email: string, password: string) => Promise<void>;
   logout: () => void;
+  forceAccess: (resourceId: string) => Promise<boolean>;
+  hasAccessToResource: (requiredLevel: number) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -56,7 +60,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         accessLevel: 5,
         department: 'Отдел специальных исследований',
         position: 'Старший исследователь',
-        avatar: '/placeholder.svg'
+        avatar: '/placeholder.svg',
+        specialAccess: ['unrestricted', 'keter', 'admin'],
+        overrideCode: 'SCE-ADMIN-OVERRIDE'
       };
       
       // Сохраняем в localStorage и состояние
@@ -85,6 +91,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         accessLevel: 5,
         department: 'Отдел специальных исследований',
         position: 'Старший исследователь',
+        specialAccess: ['unrestricted', 'keter', 'admin'],
+        overrideCode: 'SCE-ADMIN-OVERRIDE'
       };
       
       // Сохраняем в localStorage и состояние
@@ -103,6 +111,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setUser(null);
   };
 
+  // Проверка доступа к ресурсу по уровню
+  const hasAccessToResource = (requiredLevel: number): boolean => {
+    if (!user) return false;
+    return user.accessLevel >= requiredLevel;
+  };
+
+  // Функция для форсирования доступа (для пользователей с уровнем 5)
+  const forceAccess = async (resourceId: string): Promise<boolean> => {
+    if (!user || user.accessLevel < 5) return false;
+    
+    // Имитация запроса к API
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    // Для пользователей с уровнем 5 всегда возвращаем true
+    return true;
+  };
+
   const value = {
     user,
     isAuthenticated: !!user,
@@ -110,6 +135,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     login,
     register,
     logout,
+    forceAccess,
+    hasAccessToResource
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
